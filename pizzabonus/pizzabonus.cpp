@@ -4,15 +4,18 @@
 #define DEFAULT_THRESHOLD 5;
 
 pizzabonus::pizzabonus(name self_contract, name first_receiver, eosio::datastream<const char*> ds) 
-: contract(self_contract, first_receiver, ds), ut(self_contract, self_contract.value) {
-  // TODO: Research passing custom parameters to the contract constructor
-  if (coupon_threshold == 0) {
-    coupon_threshold = DEFAULT_THRESHOLD;
-  }
+: 
+contract(self_contract, first_receiver, ds),
+ut(self_contract, self_contract.value),
+config(self_contract, self_contract.value) {
   eosio::print("self_contract " , self_contract);
   eosio::print("first_receiver ", first_receiver);
   // self_contract pizzabonus = owner of the action
   // first_receiver pizzabonus ???
+}
+
+void pizzabonus::init() {
+  config.get_or_create(_self, configtype{});
 }
 
 void pizzabonus::buypizza(name user) {
@@ -29,7 +32,7 @@ void pizzabonus::buypizza(name user) {
     eosio::print("user already exist and bought a pizza ", user);
     ut.modify(iterator, user, [&](auto& row) {
       row.pzsbought++;
-      if(row.pzsbought >= coupon_threshold) {
+      if(row.pzsbought >= config.get().threshold) {
         row.coupons++;
         row.pzsbought = 0;
       }
@@ -69,6 +72,8 @@ void pizzabonus::redeemcoupon(name user) {
 
 void pizzabonus::chngthrhld(name user, uint16_t newvalue) { 
   eosio::require_auth(user);
-  coupon_threshold = newvalue;
-  eosio::print("new coupon threshold: ", coupon_threshold);
+  configtype config_state = config.get();
+  config_state.threshold = newvalue;
+  config.set(config_state, _self);
+  eosio::print("new coupon threshold: ", config.get().threshold);
 }

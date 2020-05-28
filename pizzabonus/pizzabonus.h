@@ -14,6 +14,9 @@ class [[eosio::contract]] pizzabonus : public contract {
     // ~pizzabonus();
 
     [[eosio::action]]
+    void init();
+
+    [[eosio::action]]
     void buypizza(name user);
 
     [[eosio::action]]
@@ -26,7 +29,7 @@ class [[eosio::contract]] pizzabonus : public contract {
     void chngthrhld(name user, uint16_t newvalue);
 
   private:
-    uint16_t coupon_threshold = 0;
-
     usertable_t ut;
+
+    config_t config;
 };
